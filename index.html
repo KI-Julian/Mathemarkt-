@@ -29,6 +29,29 @@ input{width:100%;min-height:50px;border:1px solid var(--line);border-radius:15px
 .good{color:var(--green)}.warn{color:#a15c00}.hidden{display:none!important}
 .calc{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.calc button{min-height:46px;border:1px solid var(--line);background:#fff;border-radius:12px;font-weight:800}.calcDisplay{font-size:24px;text-align:right;padding:12px;background:var(--soft);border-radius:12px;margin-bottom:10px;min-height:54px}
 @media(max-width:360px){.answers,.avatars{grid-template-columns:1fr}.app{padding:12px}.card{padding:18px}}
+
+/* MatheMarkt 0.3: feste Navigation und globaler Rechner */
+.app{padding-bottom:110px}
+.global-nav{position:fixed;left:50%;transform:translateX(-50%);bottom:0;width:min(520px,100%);z-index:900;background:rgba(255,255,255,.97);border-top:1px solid var(--line);padding:8px 10px calc(8px + env(safe-area-inset-bottom));display:none;box-shadow:0 -6px 22px rgba(0,0,0,.06)}
+.global-nav.show{display:flex}
+.global-nav button{flex:1;border:0;background:transparent;min-height:52px;border-radius:12px;font-size:11px;font-weight:750;color:var(--muted)}
+.global-nav button .ni{display:block;font-size:21px;line-height:24px;margin-bottom:2px}
+.global-nav button.active{color:var(--red);background:#fff1f2}
+.calc-fab{position:fixed;z-index:950;right:max(18px,calc((100vw - 520px)/2 + 18px));bottom:calc(78px + env(safe-area-inset-bottom));width:54px;height:54px;border:0;border-radius:50%;background:var(--red);color:white;font-size:25px;box-shadow:0 8px 22px rgba(0,0,0,.22);display:none}
+.calc-fab.show{display:block}
+.calc-modal{position:fixed;inset:0;z-index:1200;background:rgba(17,24,39,.42);display:none;align-items:flex-end;justify-content:center}
+.calc-modal.show{display:flex}
+.calc-sheet{width:min(520px,100%);background:white;border-radius:24px 24px 0 0;padding:18px 16px calc(20px + env(safe-area-inset-bottom));box-shadow:0 -12px 40px rgba(0,0,0,.18)}
+.calc-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.calc-close{border:0;background:var(--soft);width:38px;height:38px;border-radius:50%;font-size:20px}
+.global-calc-display{font-size:28px;text-align:right;padding:14px;background:var(--soft);border-radius:14px;margin-bottom:10px;min-height:62px;overflow:auto}
+.global-calc{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.global-calc button{min-height:50px;border:1px solid var(--line);background:#fff;border-radius:13px;font-size:17px;font-weight:800}
+.version-mini{text-align:center;color:var(--muted);font-size:10px;margin-top:14px}
+.leave-modal{position:fixed;inset:0;z-index:1300;background:rgba(17,24,39,.45);display:none;align-items:center;justify-content:center;padding:18px}
+.leave-modal.show{display:flex}
+.leave-box{width:min(420px,100%);background:white;border-radius:22px;padding:22px}
+
 </style>
 </head>
 <body>
@@ -59,8 +82,8 @@ input{width:100%;min-height:50px;border:1px solid var(--line);border-radius:15px
 <section class="screen" id="home"><div class="card"><div style="display:flex;justify-content:space-between;align-items:center"><div><div class="small muted">Hey <span id="homeName"></span> 👋</div><h2>Was trainieren wir?</h2></div><div id="homeAvatar" class="bigemoji"></div></div>
 <div class="box"><b>🔥 <span id="streak">1</span> Tage Streak</b><br><span class="small muted"><span id="xp">0</span> XP · <span id="level">Markt Starter</span></span></div>
 <button class="btn primary" id="recommendedBtn">🎯 Empfohlenes 3 Minuten Training</button><div class="space"></div>
-<div id="topicButtons"></div>
-<div class="nav"><button data-page="home">🏠<br><span class="small">Start</span></button><button data-page="progressPage">📈<br><span class="small">Fortschritt</span></button><button data-page="helpPage">📚<br><span class="small">Mathe Hilfe</span></button><button data-page="settings">⚙️<br><span class="small">Mehr</span></button></div></div></section>
+<div id="topicButtons"></div><div class="version-mini">MatheMarkt · Version 0.3</div>
+</div></section>
 
 <section class="screen" id="lesson"><div class="card"><span class="pill" id="lessonTopic"></span><h2 id="lessonTitle" style="margin-top:10px"></h2><p id="lessonExplain"></p>
 <div class="box"><b>🧠 Merksatz</b><p id="lessonRule"></p></div><div class="box"><b>👀 Beispiel</b><p id="lessonExample"></p></div>
@@ -74,13 +97,36 @@ input{width:100%;min-height:50px;border:1px solid var(--line);border-radius:15px
 <section class="screen" id="sessionEnd"><div class="card"><div class="bigemoji">🔥</div><h2>Starke Runde, <span id="endName"></span>!</h2><div class="box" id="sessionStats"></div><p id="sessionTip"></p>
 <div class="row"><button class="btn secondary" data-go="home">Fertig</button><button class="btn primary" id="again">Noch 3 Minuten</button></div></div></section>
 
-<section class="screen" id="progressPage"><div class="card"><h2>Dein Fortschritt 📈</h2><p class="muted small">Hier siehst du deine Entwicklung seit dem adaptiven Mathe Check. Die Prozentwerte sind eine Lernstand Einschätzung und werden durch dein Training genauer.</p><div id="progressTopics"></div><div class="nav"><button data-page="home">🏠 Start</button><button data-page="helpPage">📚 Hilfe</button><button data-page="settings">⚙️ Mehr</button></div></div></section>
+<section class="screen" id="progressPage"><div class="card"><h2>Dein Fortschritt 📈</h2><p class="muted small">Hier siehst du deine Entwicklung seit dem adaptiven Mathe Check. Die Prozentwerte sind eine Lernstand Einschätzung und werden durch dein Training genauer.</p><div id="progressTopics"></div></div></section>
 
-<section class="screen" id="helpPage"><div class="card"><h2>Mathe Hilfe 📚</h2><input id="helpSearch" placeholder="z. B. Dreisatz oder Rabatt"><div id="helpItems"></div><div class="nav"><button data-page="home">🏠 Start</button><button data-page="progressPage">📈 Fortschritt</button></div></div></section>
+<section class="screen" id="helpPage"><div class="card"><h2>Mathe Hilfe 📚</h2><input id="helpSearch" placeholder="z. B. Dreisatz oder Rabatt"><div id="helpItems"></div></div></section>
 
 <section class="screen" id="settings"><div class="card"><h2>Mehr ⚙️</h2><div class="box"><b>🎓 Prüfungsmodus</b><p class="small muted">Wird pro Thema ab 70 % Sicherheit freigeschaltet. Ohne Tipps und ohne Zeitdruck.</p></div>
-<button class="btn secondary" id="shareProgress">📤 Fortschritt teilen</button><div class="space"></div><button class="btn secondary" id="reset">🔄 Fortschritt zurücksetzen</button><div class="nav"><button data-page="home">🏠 Start</button><button data-page="progressPage">📈 Fortschritt</button></div></div></section>
+<button class="btn secondary" id="shareProgress">📤 Fortschritt teilen</button><div class="space"></div><button class="btn secondary" id="reset">🔄 Fortschritt zurücksetzen</button><div class="version-mini">MatheMarkt · Version 0.3</div></div></section>
 </main>
+
+<nav class="global-nav" id="globalNav" aria-label="Hauptnavigation">
+  <button data-global-page="home"><span class="ni">🏠</span>Start</button>
+  <button data-global-page="progressPage"><span class="ni">📈</span>Fortschritt</button>
+  <button data-global-page="helpPage"><span class="ni">📚</span>Mathe Hilfe</button>
+  <button data-global-page="settings"><span class="ni">⚙️</span>Mehr</button>
+</nav>
+<button class="calc-fab" id="globalCalcBtn" aria-label="Taschenrechner öffnen">🧮</button>
+<div class="calc-modal" id="globalCalcModal">
+  <div class="calc-sheet">
+    <div class="calc-head"><div><b>🧮 Taschenrechner</b><div class="small muted">Bleibt über deiner aktuellen Aufgabe geöffnet</div></div><button class="calc-close" id="globalCalcClose">×</button></div>
+    <div class="global-calc-display" id="globalCalcDisplay">0</div>
+    <div class="global-calc" id="globalCalcKeys"></div>
+  </div>
+</div>
+<div class="leave-modal" id="leaveModal">
+ <div class="leave-box">
+   <h3>Training verlassen?</h3>
+   <p class="muted">Dein aktueller Fortschritt dieser Runde geht verloren.</p>
+   <div class="row"><button class="btn secondary" id="stayBtn">Weiter lernen</button><button class="btn primary" id="leaveBtn">Ja, verlassen</button></div>
+ </div>
+</div>
+
 <script>
 const topics={
 "Grundrechnen":{icon:"🧮",title:"Grundrechnen im Markt",explain:"Plus, Minus, Mal und Geteilt begegnen dir ständig. Wir zerlegen Rechnungen in kleine, einfache Schritte.",rule:"Erst überlegen, welche Rechenart du brauchst. Dann Schritt für Schritt rechnen.",example:"3 Flaschen kosten je 2,50 €. 3 × 2,50 € = 7,50 €."},
@@ -208,6 +254,76 @@ let calc="";["7","8","9","÷","4","5","6","×","1","2","3","−","0",",","C","+"
 $("#reset").onclick=()=>{if(confirm("Wirklich den gesamten MatheMarkt Fortschritt löschen?")){localStorage.removeItem("mmState");location.reload()}}
 $("#shareProgress").onclick=async()=>{let text=`MatheMarkt Fortschritt von ${state.name}\n`+Object.keys(topics).map(t=>`${t}: ${state.scores[t]||0}%`).join("\n")+`\nXP: ${state.xp} · Level: ${level()}`;if(navigator.share){try{await navigator.share({title:"MatheMarkt Fortschritt",text})}catch(e){}}else alert(text)}
 if(state.name&&state.checkDone){updateStreak();renderHome();show("home")}else if(state.name){renderAvatars();show(state.avatar?"checkIntro":"avatar")}
+</script>
+
+
+<script>
+const MM_VERSION="0.3";
+const onboardingScreens=["welcome","name","avatar","checkIntro"];
+const activeWorkScreens=["check","lesson","training"];
+let pendingGlobalPage=null;
+function currentScreenId(){
+  const s=document.querySelector(".screen.active");
+  return s?s.id:"";
+}
+function updateGlobalUI(){
+  const id=currentScreenId();
+  const visible=!onboardingScreens.includes(id);
+  document.getElementById("globalNav").classList.toggle("show",visible);
+  document.getElementById("globalCalcBtn").classList.toggle("show",visible);
+  document.querySelectorAll("#globalNav button").forEach(b=>b.classList.toggle("active",b.dataset.globalPage===id));
+}
+const originalShow=show;
+show=function(id){
+  originalShow(id);
+  updateGlobalUI();
+}
+function goGlobal(page){
+  const id=currentScreenId();
+  if(activeWorkScreens.includes(id) && page!==id){
+    pendingGlobalPage=page;
+    document.getElementById("leaveModal").classList.add("show");
+    return;
+  }
+  finishGlobalNavigation(page);
+}
+function finishGlobalNavigation(page){
+  if(page==="home")renderHome();
+  if(page==="progressPage")renderProgress();
+  if(page==="helpPage")renderHelp();
+  show(page);
+}
+document.querySelectorAll("[data-global-page]").forEach(b=>b.addEventListener("click",()=>goGlobal(b.dataset.globalPage)));
+document.getElementById("stayBtn").onclick=()=>{pendingGlobalPage=null;document.getElementById("leaveModal").classList.remove("show")};
+document.getElementById("leaveBtn").onclick=()=>{
+  document.getElementById("leaveModal").classList.remove("show");
+  const p=pendingGlobalPage;pendingGlobalPage=null;
+  if(p)finishGlobalNavigation(p);
+};
+document.getElementById("globalCalcBtn").onclick=()=>document.getElementById("globalCalcModal").classList.add("show");
+document.getElementById("globalCalcClose").onclick=()=>document.getElementById("globalCalcModal").classList.remove("show");
+document.getElementById("globalCalcModal").addEventListener("click",e=>{if(e.target.id==="globalCalcModal")e.currentTarget.classList.remove("show")});
+let globalCalcExpr="";
+function safeCalc(expr){
+ try{
+   const cleaned=expr.replaceAll(",",".").replaceAll("×","*").replaceAll("÷","/").replaceAll("−","-");
+   if(!/^[0-9+\-*/().\s]+$/.test(cleaned))return "Fehler";
+   const val=Function('"use strict";return ('+cleaned+')')();
+   return Number.isFinite(val)?String(Math.round((val+Number.EPSILON)*1000000)/1000000).replace(".",","):"Fehler";
+ }catch(e){return "Fehler"}
+}
+["7","8","9","÷","4","5","6","×","1","2","3","−","0",",","C","+","(",")","⌫","="].forEach(k=>{
+ const b=document.createElement("button");b.textContent=k;
+ b.onclick=()=>{
+   if(k==="C")globalCalcExpr="";
+   else if(k==="⌫")globalCalcExpr=globalCalcExpr.slice(0,-1);
+   else if(k==="=")globalCalcExpr=safeCalc(globalCalcExpr);
+   else globalCalcExpr+=k;
+   document.getElementById("globalCalcDisplay").textContent=globalCalcExpr||"0";
+ };
+ document.getElementById("globalCalcKeys").appendChild(b);
+});
+updateGlobalUI();
 </script>
 
 <script>
