@@ -92,7 +92,7 @@ input{width:100%;min-height:50px;border:1px solid var(--line);border-radius:15px
 <div class="box"><b>🔥 <span id="streak">1</span> Tage Streak</b><br><span class="small muted"><span id="xp">0</span> XP · <span id="level">Markt Starter</span></span></div>
 <button class="btn primary" id="recommendedBtn">🎯 Empfohlenes 3 Minuten Training</button><div class="space"></div>
 <div id="topicButtons"></div>
-<div class="home-version">MatheMarkt · Version 0.3.2</div>
+<div class="home-version">MatheMarkt · Version 0.3.3</div>
 </div></section>
 
 <section class="screen" id="lesson"><div class="card"><span class="pill" id="lessonTopic"></span><h2 id="lessonTitle" style="margin-top:10px"></h2><p id="lessonExplain"></p>
@@ -112,7 +112,7 @@ input{width:100%;min-height:50px;border:1px solid var(--line);border-radius:15px
 <section class="screen" id="helpPage"><div class="card"><h2>Mathe Hilfe 📚</h2><input id="helpSearch" placeholder="z. B. Dreisatz oder Rabatt"><div id="helpItems"></div></div></section>
 
 <section class="screen" id="settings"><div class="card"><h2>Mehr ⚙️</h2><div class="box"><b>🎓 Prüfungsmodus</b><p class="small muted">Wird pro Thema ab 70 % Sicherheit freigeschaltet. Ohne Tipps und ohne Zeitdruck.</p></div>
-<button class="btn secondary" id="shareProgress">📤 Fortschritt teilen</button><div class="space"></div><button class="btn secondary" id="reset">🔄 Fortschritt zurücksetzen</button><div class="version-mini">MatheMarkt · Version 0.3.2</div></div></section>
+<button class="btn secondary" id="shareProgress">📤 Fortschritt teilen</button><div class="space"></div><button class="btn secondary" id="reset">🔄 Fortschritt zurücksetzen</button><div class="version-mini">MatheMarkt · Version 0.3.3</div></div></section>
 </main>
 
 <nav class="global-nav" id="globalNav" aria-label="Hauptnavigation">
@@ -245,7 +245,34 @@ function renderHome(){state.level=level();$("#homeName").textContent=state.name;
 function openLesson(t){currentTopic=t;let x=topics[t];$("#lessonTopic").textContent=x.icon+" "+t;$("#lessonTitle").textContent=x.title;$("#lessonExplain").textContent=x.explain;$("#lessonRule").textContent=x.rule;$("#lessonExample").textContent=x.example;show("lesson")}
 function startTraining(){ti=0;attempt=0;session={right:0,tips:0,xp:0};renderTraining();show("training")}
 function renderTraining(){let qs=trainingQs[currentTopic],q=qs[ti%qs.length];$("#trainTopic").textContent=topics[currentTopic].icon+" "+currentTopic;$("#trainCount").textContent=`${ti+1} von 5`;$("#trainBar").style.width=((ti+1)/5*100)+"%";$("#trainText").textContent=q[0];$("#trainAnswers").innerHTML=q[1].map((a,i)=>`<button class="answer" data-i="${i}">${a}</button>`).join("");$("#trainFeedback").classList.add("hidden");$("#trainNext").classList.add("hidden");attempt=0;let calc=["Prozentrechnung","Dreisatz","Kalkulation"].includes(currentTopic);$("#calcToggle").classList.toggle("hidden",!calc);$("#calculator").classList.add("hidden");$$("#trainAnswers .answer").forEach(b=>b.onclick=()=>answerTrain(+b.dataset.i))}
-function answerTrain(i){let q=trainingQs[currentTopic][ti%trainingQs[currentTopic].length],fb=$("#trainFeedback");let explanation=q[3]||"Schau dir den Rechenweg noch einmal Schritt für Schritt an.";attempt++;fb.classList.remove("hidden");if(i===q[2]){let gain=attempt===1?20:attempt===2?12:8;session.right++;session.xp+=gain;if(attempt>1)session.tips++;fb.innerHTML=`<b class="good">Stark! 🔥 +${gain} XP</b><p>${explanation}</p>`;$("#trainNext").classList.remove("hidden");$$("#trainAnswers .answer").forEach(b=>b.disabled=true)}else if(attempt===1){session.tips++;fb.innerHTML="<b>Fast 👀</b><p>Tipp 1: Überleg zuerst, welche Rechenart du brauchst.</p>"}else if(attempt===2){fb.innerHTML="<b>Noch ein Tipp 💪</b><p>Tipp 2: Zerlege die Aufgabe in einen kleinen Zwischenschritt.</p>"}else{fb.innerHTML=`<b>Wir rechnen es zusammen 🤝</b><p>${explanation}</p>`;$("#trainNext").classList.remove("hidden");$$("#trainAnswers .answer").forEach(b=>b.disabled=true)}}
+function answerTrain(i){
+  const q=trainingQs[currentTopic][ti%trainingQs[currentTopic].length];
+  const fb=$("#trainFeedback");
+  const explanation=(typeof q[3]==="string" && q[3].trim())
+    ? q[3]
+    : "Rechenweg: Prüfe die Aufgabe noch einmal Schritt für Schritt.";
+  attempt++;
+  fb.classList.remove("hidden");
+
+  if(i===q[2]){
+    const gain=attempt===1?20:attempt===2?12:8;
+    session.right++;
+    session.xp+=gain;
+    if(attempt>1)session.tips++;
+    fb.innerHTML=`<b class="good">Stark! 🔥 +${gain} XP</b><p>${explanation}</p>`;
+    $("#trainNext").classList.remove("hidden");
+    $$("#trainAnswers .answer").forEach(b=>b.disabled=true);
+  } else if(attempt===1){
+    session.tips++;
+    fb.innerHTML="<b>Fast 👀</b><p>Tipp 1: Überleg zuerst, welche Rechenart du brauchst.</p>";
+  } else if(attempt===2){
+    fb.innerHTML="<b>Noch ein Tipp 💪</b><p>Tipp 2: Zerlege die Aufgabe in einen kleinen Zwischenschritt.</p>";
+  } else {
+    fb.innerHTML=`<b>Wir rechnen es zusammen 🤝</b><p>${explanation}</p>`;
+    $("#trainNext").classList.remove("hidden");
+    $$("#trainAnswers .answer").forEach(b=>b.disabled=true);
+  }
+}
 function finishSession(){state.xp+=session.xp;let old=state.scores[currentTopic]||0;let performance=Math.round(session.right/5*100);state.scores[currentTopic]=Math.min(100,Math.round(old*.7+performance*.3));state.history[currentTopic]=state.scores[currentTopic];state.recommended=Object.entries(state.scores).sort((a,b)=>a[1]-b[1])[0]?.[0]||currentTopic;updateStreak();save();$("#endName").textContent=state.name;$("#sessionStats").innerHTML=`<b>${session.right} von 5 gelöst</b><br>${session.tips}× Hilfe genutzt<br><b>+${session.xp} XP</b>`;$("#sessionTip").textContent=`🎯 Nächster Fokus: ${state.recommended}. Kleine Schritte, starke Entwicklung.`;show("sessionEnd")}
 function renderProgress(){let h="";Object.keys(topics).forEach(t=>{let now=state.scores[t]||0,start=state.startScores[t]||0,d=now-start;h+=`<div class="topic"><span>${topics[t].icon} ${t}<br><span class="small muted">Start ${start}% ${d>0?"· +"+d+" Punkte 📈":""}</span></span><b>${now}%</b></div>`});$("#progressTopics").innerHTML=h}
 function renderHelp(filter=""){let f=filter.toLowerCase();$("#helpItems").innerHTML=Object.keys(topics).filter(t=>(t+" "+topics[t].explain+" "+topics[t].rule).toLowerCase().includes(f)).map(t=>`<div class="box"><b>${topics[t].icon} ${t}</b><p class="small">${topics[t].explain}</p><p class="small"><b>🧠 ${topics[t].rule}</b></p></div>`).join("")}
@@ -268,7 +295,7 @@ if(state.name&&state.checkDone){updateStreak();renderHome();show("home")}else if
 
 
 <script>
-const MM_VERSION="0.3.2";
+const MM_VERSION="0.3.3";
 const onboardingScreens=["welcome","name","avatar","checkIntro"];
 const activeWorkScreens=["check","lesson","training"];
 let pendingGlobalPage=null;
@@ -339,7 +366,7 @@ updateGlobalUI();
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./service-worker.js').catch(() => {});
+    navigator.serviceWorker.register('./service-worker.js?v=033', {updateViaCache:'none'}).then(r=>r.update()).catch(() => {});
   });
 }
 </script>
