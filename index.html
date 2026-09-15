@@ -5,6 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#d71920">
 <title>MatheMarkt</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="MatheMarkt">
+
 <style>
 :root{--red:#d71920;--red2:#b51218;--bg:#f6f7f9;--card:#fff;--text:#202124;--muted:#6b7280;--line:#e5e7eb;--soft:#f1f3f5;--green:#198754}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
@@ -142,4 +148,13 @@ $("#reset").onclick=()=>{if(confirm("Wirklich den gesamten MatheMarkt Fortschrit
 $("#shareProgress").onclick=async()=>{let text=`MatheMarkt Fortschritt von ${state.name}\n`+Object.keys(topics).map(t=>`${t}: ${state.scores[t]||0}%`).join("\n")+`\nXP: ${state.xp} · Level: ${level()}`;if(navigator.share){try{await navigator.share({title:"MatheMarkt Fortschritt",text})}catch(e){}}else alert(text)}
 if(state.name&&state.checkDone){updateStreak();renderHome();show("home")}else if(state.name){renderAvatars();show(state.avatar?"checkIntro":"avatar")}
 </script>
+
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./service-worker.js').catch(() => {});
+  });
+}
+</script>
+
 </body></html>
