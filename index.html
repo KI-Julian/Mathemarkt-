@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#d71920">
+<title>MatheMarkt</title>
+<style>
+:root{--red:#d71920;--red2:#b51218;--bg:#f6f7f9;--card:#fff;--text:#202124;--muted:#6b7280;--line:#e5e7eb;--soft:#f1f3f5;--green:#198754}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.app{max-width:520px;margin:auto;min-height:100vh;padding:18px 16px 36px}.screen{display:none}.screen.active{display:block}
+.card{background:var(--card);border:1px solid var(--line);border-radius:24px;padding:22px}.logo{font-size:32px;font-weight:900;letter-spacing:-1px}.logo span{color:var(--red)}
+h1,h2,h3{margin:0 0 10px}p{line-height:1.5}.muted{color:var(--muted)}.small{font-size:13px}.bigemoji{font-size:46px}
+.btn{width:100%;min-height:50px;border:0;border-radius:15px;padding:12px 16px;font-size:16px;font-weight:800;cursor:pointer}
+.primary{background:var(--red);color:#fff}.primary:active{background:var(--red2)}.secondary{background:#fff;border:1px solid var(--line);color:var(--text)}
+.row{display:flex;gap:10px}.row>*{flex:1}.box{background:var(--soft);border-radius:17px;padding:15px;margin:14px 0}.space{height:12px}
+input{width:100%;min-height:50px;border:1px solid var(--line);border-radius:15px;padding:0 14px;font-size:16px;background:#fff}
+.avatars{display:grid;grid-template-columns:1fr 1fr;gap:10px}.avatar{border:1px solid var(--line);background:var(--soft);border-radius:17px;padding:14px;text-align:left;min-height:125px;cursor:pointer}.avatar.sel{outline:3px solid var(--red)}
+.avatar .e{font-size:34px}.progress{height:9px;background:var(--soft);border-radius:99px;overflow:hidden}.bar{height:100%;background:var(--red)}
+.answers{display:grid;grid-template-columns:1fr 1fr;gap:10px}.answer{min-height:54px;border:1px solid var(--line);background:#fff;border-radius:15px;font-size:16px;font-weight:700;padding:10px;cursor:pointer}
+.topic{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);padding:12px 0}.topic:last-child{border:0}
+.nav{display:flex;gap:8px;margin-top:16px}.nav button{flex:1;border:1px solid var(--line);background:#fff;border-radius:14px;padding:11px 5px;font-weight:700}.pill{display:inline-block;background:#feecee;color:#9f1117;border-radius:999px;padding:6px 10px;font-size:12px;font-weight:800}
+.good{color:var(--green)}.warn{color:#a15c00}.hidden{display:none!important}
+.calc{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.calc button{min-height:46px;border:1px solid var(--line);background:#fff;border-radius:12px;font-weight:800}.calcDisplay{font-size:24px;text-align:right;padding:12px;background:var(--soft);border-radius:12px;margin-bottom:10px;min-height:54px}
+@media(max-width:360px){.answers,.avatars{grid-template-columns:1fr}.app{padding:12px}.card{padding:18px}}
+</style>
+</head>
+<body>
+<main class="app" id="app">
+<section class="screen active" id="welcome"><div class="card">
+<div class="bigemoji">🛒</div><div class="small muted">Willkommen bei</div><div class="logo">Mathe<span>Markt</span></div>
+<p>Mathe, aber so, wie du es im Einzelhandel wirklich brauchst. Kurz erklärt, direkt ausprobiert und Schritt für Schritt verständlich.</p>
+<div class="box"><b>So läuft's 👇</b><p class="small">📚 Verstehen<br>👀 Beispiel anschauen<br>🤝 Gemeinsam rechnen<br>🔥 Selbst trainieren</p></div>
+<button class="btn primary" data-go="name">Los geht's 🚀</button>
+</div></section>
+
+<section class="screen" id="name"><div class="card"><div class="bigemoji">👋</div><h2>Wie heißt du?</h2><p class="muted small">Nur dein Vorname. Er wird ausschließlich auf diesem Gerät gespeichert.</p>
+<input id="firstName" maxlength="20" placeholder="z. B. Luca"><div class="space"></div><button class="btn primary" id="saveName">Weiter</button></div></section>
+
+<section class="screen" id="avatar"><div class="card"><h2>Wähl deinen Markt Charakter</h2><p class="muted small">Dein Charakter entwickelt sich später mit deinem Level weiter.</p>
+<div class="avatars" id="avatarList"></div><div class="space"></div><button class="btn primary" id="saveAvatar">Weiter</button></div></section>
+
+<section class="screen" id="checkIntro"><div class="card"><span class="pill">5 Minuten</span><h2 style="margin-top:10px">Dein Mathe Check 🎯</h2>
+<p>Wir schauen kurz, was schon sitzt und wo MatheMarkt dich unterstützen kann.</p><div class="box small">✅ Kein Zeitdruck<br>✅ Keine Schulnoten<br>✅ Situationen aus dem Einzelhandel<br>✅ Danach persönliche Trainingsempfehlung</div>
+<button class="btn primary" id="startCheck">Mathe Check starten 🔥</button></div></section>
+
+<section class="screen" id="check"><div class="card"><div style="display:flex;justify-content:space-between"><b>Mathe Check</b><span id="qCount" class="muted small"></span></div>
+<div class="progress" style="margin:12px 0 20px"><div class="bar" id="qBar"></div></div><div id="qTopic" class="small muted"></div><h2 id="qText"></h2><div class="answers" id="qAnswers"></div></div></section>
+
+<section class="screen" id="result"><div class="card"><div class="bigemoji">🎯</div><h2 id="resultTitle"></h2><p>Das ist dein Startpunkt. Kein Urteil, sondern dein persönlicher Trainingsplan.</p><div id="resultTopics"></div>
+<div class="box"><b>🎯 Meine Empfehlung</b><p id="recommendation"></p></div><button class="btn primary" id="goHome">Zu MatheMarkt</button></div></section>
+
+<section class="screen" id="home"><div class="card"><div style="display:flex;justify-content:space-between;align-items:center"><div><div class="small muted">Hey <span id="homeName"></span> 👋</div><h2>Was trainieren wir?</h2></div><div id="homeAvatar" class="bigemoji"></div></div>
+<div class="box"><b>🔥 <span id="streak">1</span> Tage Streak</b><br><span class="small muted"><span id="xp">0</span> XP · <span id="level">Markt Starter</span></span></div>
+<button class="btn primary" id="recommendedBtn">🎯 Empfohlenes 3 Minuten Training</button><div class="space"></div>
+<div id="topicButtons"></div>
+<div class="nav"><button data-page="home">🏠<br><span class="small">Start</span></button><button data-page="progressPage">📈<br><span class="small">Fortschritt</span></button><button data-page="helpPage">📚<br><span class="small">Mathe Hilfe</span></button><button data-page="settings">⚙️<br><span class="small">Mehr</span></button></div></div></section>
+
+<section class="screen" id="lesson"><div class="card"><span class="pill" id="lessonTopic"></span><h2 id="lessonTitle" style="margin-top:10px"></h2><p id="lessonExplain"></p>
+<div class="box"><b>🧠 Merksatz</b><p id="lessonRule"></p></div><div class="box"><b>👀 Beispiel</b><p id="lessonExample"></p></div>
+<div class="row"><button class="btn secondary" id="skipExplain">Überspringen</button><button class="btn primary" id="beginTraining">Verstanden 👍</button></div></div></section>
+
+<section class="screen" id="training"><div class="card"><div style="display:flex;justify-content:space-between"><b id="trainTopic"></b><span class="small muted" id="trainCount"></span></div><div class="progress" style="margin:12px 0 20px"><div class="bar" id="trainBar"></div></div>
+<h2 id="trainText"></h2><div class="answers" id="trainAnswers"></div><div id="trainFeedback" class="box hidden"></div>
+<button class="btn secondary hidden" id="calcToggle" style="margin-top:10px">🧮 Taschenrechner</button><div id="calculator" class="box hidden"><div class="calcDisplay" id="calcDisplay">0</div><div class="calc" id="calcKeys"></div></div>
+<button class="btn primary hidden" id="trainNext" style="margin-top:10px">Weiter</button></div></section>
+
+<section class="screen" id="sessionEnd"><div class="card"><div class="bigemoji">🔥</div><h2>Starke Runde, <span id="endName"></span>!</h2><div class="box" id="sessionStats"></div><p id="sessionTip"></p>
+<div class="row"><button class="btn secondary" data-go="home">Fertig</button><button class="btn primary" id="again">Noch 3 Minuten</button></div></div></section>
+
+<section class="screen" id="progressPage"><div class="card"><h2>Dein Fortschritt 📈</h2><p class="muted small">Hier siehst du, wie du dich seit deinem Mathe Check entwickelst.</p><div id="progressTopics"></div><div class="nav"><button data-page="home">🏠 Start</button><button data-page="helpPage">📚 Hilfe</button><button data-page="settings">⚙️ Mehr</button></div></div></section>
+
+<section class="screen" id="helpPage"><div class="card"><h2>Mathe Hilfe 📚</h2><input id="helpSearch" placeholder="z. B. Dreisatz oder Rabatt"><div id="helpItems"></div><div class="nav"><button data-page="home">🏠 Start</button><button data-page="progressPage">📈 Fortschritt</button></div></div></section>
+
+<section class="screen" id="settings"><div class="card"><h2>Mehr ⚙️</h2><div class="box"><b>🎓 Prüfungsmodus</b><p class="small muted">Wird pro Thema ab 70 % Sicherheit freigeschaltet. Ohne Tipps und ohne Zeitdruck.</p></div>
+<button class="btn secondary" id="shareProgress">📤 Fortschritt teilen</button><div class="space"></div><button class="btn secondary" id="reset">🔄 Fortschritt zurücksetzen</button><div class="nav"><button data-page="home">🏠 Start</button><button data-page="progressPage">📈 Fortschritt</button></div></div></section>
+</main>
+<script>
+const topics={
+"Grundrechnen":{icon:"🧮",title:"Grundrechnen im Markt",explain:"Plus, Minus, Mal und Geteilt begegnen dir ständig. Wir zerlegen Rechnungen in kleine, einfache Schritte.",rule:"Erst überlegen, welche Rechenart du brauchst. Dann Schritt für Schritt rechnen.",example:"3 Flaschen kosten je 2,50 €. 3 × 2,50 € = 7,50 €."},
+"Kasse & Geld":{icon:"💶",title:"Sicher mit Geld",explain:"An der Kasse geht es oft um Summen und Wechselgeld.",rule:"Wechselgeld = gegebenes Geld minus Einkaufsbetrag.",example:"20,00 € gegeben, Einkauf 17,60 €. 20,00 € − 17,60 € = 2,40 €."},
+"Mengen & Waren":{icon:"📦",title:"Mengen im Griff",explain:"Kartons, Kisten und Verpackungseinheiten lassen sich mit Mal und Geteilt schnell berechnen.",rule:"Gleiche Mengen mehrfach? Multiplizieren. Gesamtmenge aufteilen? Dividieren.",example:"8 Kisten mit je 6 Flaschen: 8 × 6 = 48 Flaschen."},
+"Maße & Gewichte":{icon:"⚖️",title:"Gewichte und Maße",explain:"Im Markt brauchst du Gramm, Kilogramm, Milliliter und Liter.",rule:"1 kg = 1.000 g und 1 l = 1.000 ml.",example:"4 Packungen à 500 g: 4 × 500 g = 2.000 g = 2 kg."},
+"Prozentrechnung":{icon:"🏷️",title:"Prozente ohne Stress",explain:"Prozent bedeutet 'von hundert'. Bei Rabatten berechnest du zuerst, wie groß der Nachlass ist.",rule:"Prozentwert = Grundwert × Prozentsatz ÷ 100.",example:"20 % von 50 €: 50 × 20 ÷ 100 = 10 € Rabatt."},
+"Dreisatz":{icon:"🔢",title:"Dreisatz verstehen",explain:"Mit dem Dreisatz findest du aus einer bekannten Menge eine andere Menge. Der wichtigste Zwischenschritt ist oft die 1.",rule:"Erst auf 1, dann auf die gesuchte Menge.",example:"6 Kartons = 48 Dosen. 1 Karton = 48 ÷ 6 = 8. 10 Kartons = 8 × 10 = 80 Dosen."},
+"Kalkulation":{icon:"📊",title:"Einfach kalkulieren",explain:"Hier kombinierst du Preise, Prozente und mehrere Rechenschritte.",rule:"Rechne komplexe Aufgaben nie im Kopf auf einmal. Teile sie in Zwischenschritte.",example:"50 € mit 20 % Rabatt: Rabatt 10 €. Neuer Preis: 50 € − 10 € = 40 €."}
+};
+const checkQs=[
+["Grundrechnen","3 Flaschen kosten jeweils 2,50 €. Wie viel kosten sie zusammen?",["5,00 €","7,50 €","8,50 €","10,00 €"],1],
+["Kasse & Geld","Ein Einkauf kostet 17,60 €. Bezahlt wird mit 20 €. Wie viel Wechselgeld gibt es?",["1,40 €","2,40 €","2,60 €","3,40 €"],1],
+["Mengen & Waren","8 Kisten enthalten jeweils 6 Flaschen. Wie viele Flaschen sind das?",["42","46","48","56"],2],
+["Maße & Gewichte","4 Packungen wiegen jeweils 500 g. Wie viel ist das insgesamt?",["1 kg","1,5 kg","2 kg","2,5 kg"],2],
+["Prozentrechnung","Ein Artikel kostet 50 €. Es gibt 20 % Rabatt. Wie hoch ist der Rabatt?",["5 €","10 €","15 €","20 €"],1],
+["Dreisatz","6 Kartons enthalten 48 Dosen. Wie viele Dosen sind in 10 Kartons?",["60","70","80","90"],2],
+["Grundrechnen","Im Regal stehen 72 Artikel. 18 werden verkauft. Wie viele bleiben?",["44","54","56","64"],1],
+["Prozentrechnung","Ein Artikel kostet 80 €. Der Preis wird um 10 % reduziert. Neuer Preis?",["70 €","72 €","74 €","78 €"],1],
+["Dreisatz","3 kg Äpfel kosten 9 €. Was kosten 5 kg?",["12 €","15 €","18 €","20 €"],1],
+["Kalkulation","Ein Preis von 40 € wird um 25 % reduziert. Wie hoch ist der neue Preis?",["10 €","25 €","30 €","35 €"],2]
+];
+const trainingQs={
+"Grundrechnen":[["5 Packungen kosten je 3 €. Gesamt?",["8 €","15 €","18 €","20 €"],1,"5 × 3 = 15"],["60 Artikel minus 24 verkaufte Artikel?",["34","36","38","44"],1,"60 − 24 = 36"]],
+"Kasse & Geld":[["Einkauf 13,40 €, gegeben 20 €. Wechselgeld?",["5,60 €","6,60 €","7,40 €","6,40 €"],1,"20 − 13,40 = 6,60"],["Zwei Artikel kosten 4,50 € und 3,20 €. Summe?",["6,70 €","7,70 €","8,70 €","7,20 €"],1,"4,50 + 3,20 = 7,70"]],
+"Mengen & Waren":[["7 Kartons mit je 8 Dosen. Gesamt?",["48","54","56","64"],2,"7 × 8 = 56"],["48 Flaschen werden auf 6 Kisten verteilt. Je Kiste?",["6","8","10","12"],1,"48 ÷ 6 = 8"]],
+"Maße & Gewichte":[["6 Packungen à 250 g. Gesamt?",["1 kg","1,25 kg","1,5 kg","2 kg"],2,"6 × 250 g = 1.500 g = 1,5 kg"],["2,5 kg sind wie viele Gramm?",["250","500","2.050","2.500"],3,"2,5 × 1.000 = 2.500 g"]],
+"Prozentrechnung":[["20 % von 60 € sind?",["6 €","10 €","12 €","20 €"],2,"60 × 20 ÷ 100 = 12"],["10 % Rabatt auf 30 €. Neuer Preis?",["3 €","20 €","27 €","29 €"],2,"10 % von 30 = 3; 30 − 3 = 27"]],
+"Dreisatz":[["4 Kisten enthalten 32 Flaschen. Wie viele in 7 Kisten?",["48","54","56","64"],2,"32 ÷ 4 = 8; 8 × 7 = 56"],["5 kg kosten 15 €. Was kosten 2 kg?",["5 €","6 €","7,50 €","10 €"],1,"15 ÷ 5 = 3; 3 × 2 = 6"]],
+"Kalkulation":[["Ein Artikel kostet 80 €. 25 % Rabatt. Neuer Preis?",["20 €","55 €","60 €","65 €"],2,"25 % von 80 = 20; 80 − 20 = 60"],["Preis 50 €, danach 10 % günstiger. Neuer Preis?",["5 €","40 €","45 €","49 €"],2,"10 % von 50 = 5; 50 − 5 = 45"]]
+};
+const avatars=[["🧾","Kassen Pro"],["🥦","O+G Hero"],["📦","Lager Boss"],["🏷️","Preis Checker"]];
+let state=JSON.parse(localStorage.getItem("mmState")||"null")||{name:"",avatar:"",emoji:"",xp:0,streak:1,lastDay:"",checkDone:false,scores:{},startScores:{},history:{},level:"Markt Starter"};
+let qi=0,checkScore={},currentTopic="",ti=0,attempt=0,session={right:0,tips:0,xp:0};
+const $=s=>document.querySelector(s), $$=s=>document.querySelectorAll(s);
+function save(){localStorage.setItem("mmState",JSON.stringify(state))}
+function show(id){$$(".screen").forEach(x=>x.classList.remove("active"));$("#"+id).classList.add("active");window.scrollTo(0,0)}
+function updateStreak(){let d=new Date().toISOString().slice(0,10);if(!state.lastDay){state.streak=1}else{let a=new Date(state.lastDay+"T00:00:00"),b=new Date(d+"T00:00:00"),diff=Math.round((b-a)/86400000);if(diff>1)state.streak=1;else if(diff===1)state.streak++}state.lastDay=d;save()}
+function level(){let x=state.xp;return x>=800?"Mathe Marktmeister":x>=500?"Markt Profi":x>=300?"Waren Checker":x>=150?"Rechen Talent":"Markt Starter"}
+function renderAvatars(){let h="";avatars.forEach(a=>h+=`<button class="avatar ${state.avatar===a[1]?"sel":""}" data-av="${a[1]}" data-em="${a[0]}"><div class="e">${a[0]}</div><b>${a[1]}</b><div class="small muted">Dein Markt Charakter</div></button>`);$("#avatarList").innerHTML=h;$$(".avatar").forEach(b=>b.onclick=()=>{$$(".avatar").forEach(x=>x.classList.remove("sel"));b.classList.add("sel");state.avatar=b.dataset.av;state.emoji=b.dataset.em})}
+function renderCheck(){let q=checkQs[qi];$("#qCount").textContent=`${qi+1} von ${checkQs.length}`;$("#qBar").style.width=((qi+1)/checkQs.length*100)+"%";$("#qTopic").textContent=topics[q[0]].icon+" "+q[0];$("#qText").textContent=q[1];$("#qAnswers").innerHTML=q[2].map((a,i)=>`<button class="answer" data-i="${i}">${a}</button>`).join("");$$("#qAnswers .answer").forEach(b=>b.onclick=()=>{checkScore[q[0]]=(checkScore[q[0]]||{ok:0,total:0});checkScore[q[0]].total++;if(+b.dataset.i===q[3])checkScore[q[0]].ok++;qi++;qi<checkQs.length?renderCheck():finishCheck()})}
+function finishCheck(){Object.keys(topics).forEach(t=>{let s=checkScore[t]||{ok:0,total:1};let p=Math.round(s.ok/s.total*100);state.scores[t]=p;state.startScores[t]=p});state.checkDone=true;save();renderResult();show("result")}
+function renderResult(){let vals=Object.entries(state.scores);let weak=vals.sort((a,b)=>a[1]-b[1])[0]?.[0]||"Grundrechnen";state.recommended=weak;save();$("#resultTitle").textContent=`Dein Startpunkt, ${state.name} 🔥`;$("#resultTopics").innerHTML=Object.keys(topics).map(t=>`<div class="topic"><span>${topics[t].icon} ${t}</span><b>${state.scores[t]||0}%</b></div>`).join("");$("#recommendation").textContent=`Wir starten mit ${weak}. Du kannst aber jederzeit ein anderes Thema wählen.`}
+function renderHome(){state.level=level();$("#homeName").textContent=state.name;$("#homeAvatar").textContent=state.emoji||"🛒";$("#streak").textContent=state.streak;$("#xp").textContent=state.xp;$("#level").textContent=state.level;$("#recommendedBtn").textContent=`🎯 ${state.recommended||"Grundrechnen"} trainieren`;$("#topicButtons").innerHTML=Object.keys(topics).map(t=>`<button class="btn secondary topicBtn" data-topic="${t}" style="margin-bottom:8px;text-align:left">${topics[t].icon} ${t} · ${state.scores[t]||0}%</button>`).join("");$$(".topicBtn").forEach(b=>b.onclick=()=>openLesson(b.dataset.topic))}
+function openLesson(t){currentTopic=t;let x=topics[t];$("#lessonTopic").textContent=x.icon+" "+t;$("#lessonTitle").textContent=x.title;$("#lessonExplain").textContent=x.explain;$("#lessonRule").textContent=x.rule;$("#lessonExample").textContent=x.example;show("lesson")}
+function startTraining(){ti=0;attempt=0;session={right:0,tips:0,xp:0};renderTraining();show("training")}
+function renderTraining(){let qs=trainingQs[currentTopic],q=qs[ti%qs.length];$("#trainTopic").textContent=topics[currentTopic].icon+" "+currentTopic;$("#trainCount").textContent=`${ti+1} von 5`;$("#trainBar").style.width=((ti+1)/5*100)+"%";$("#trainText").textContent=q[0];$("#trainAnswers").innerHTML=q[1].map((a,i)=>`<button class="answer" data-i="${i}">${a}</button>`).join("");$("#trainFeedback").classList.add("hidden");$("#trainNext").classList.add("hidden");attempt=0;let calc=["Prozentrechnung","Dreisatz","Kalkulation"].includes(currentTopic);$("#calcToggle").classList.toggle("hidden",!calc);$("#calculator").classList.add("hidden");$$("#trainAnswers .answer").forEach(b=>b.onclick=()=>answerTrain(+b.dataset.i))}
+function answerTrain(i){let q=trainingQs[currentTopic][ti%trainingQs[currentTopic].length],fb=$("#trainFeedback");attempt++;fb.classList.remove("hidden");if(i===q[2]){let gain=attempt===1?20:attempt===2?12:8;session.right++;session.xp+=gain;if(attempt>1)session.tips++;fb.innerHTML=`<b class="good">Stark! 🔥 +${gain} XP</b><p>${q[4]}</p>`;$("#trainNext").classList.remove("hidden");$$("#trainAnswers .answer").forEach(b=>b.disabled=true)}else if(attempt===1){session.tips++;fb.innerHTML="<b>Fast 👀</b><p>Tipp 1: Überleg zuerst, welche Rechenart du brauchst.</p>"}else if(attempt===2){fb.innerHTML="<b>Noch ein Tipp 💪</b><p>Tipp 2: Zerlege die Aufgabe in einen kleinen Zwischenschritt.</p>"}else{fb.innerHTML=`<b>Wir rechnen es zusammen 🤝</b><p>${q[4]}</p>`;$("#trainNext").classList.remove("hidden");$$("#trainAnswers .answer").forEach(b=>b.disabled=true)}}
+function finishSession(){state.xp+=session.xp;let old=state.scores[currentTopic]||0;let performance=Math.round(session.right/5*100);state.scores[currentTopic]=Math.min(100,Math.round(old*.7+performance*.3));state.history[currentTopic]=state.scores[currentTopic];state.recommended=Object.entries(state.scores).sort((a,b)=>a[1]-b[1])[0]?.[0]||currentTopic;updateStreak();save();$("#endName").textContent=state.name;$("#sessionStats").innerHTML=`<b>${session.right} von 5 gelöst</b><br>${session.tips}× Hilfe genutzt<br><b>+${session.xp} XP</b>`;$("#sessionTip").textContent=`🎯 Nächster Fokus: ${state.recommended}. Kleine Schritte, starke Entwicklung.`;show("sessionEnd")}
+function renderProgress(){let h="";Object.keys(topics).forEach(t=>{let now=state.scores[t]||0,start=state.startScores[t]||0,d=now-start;h+=`<div class="topic"><span>${topics[t].icon} ${t}<br><span class="small muted">Start ${start}% ${d>0?"· +"+d+" Punkte 📈":""}</span></span><b>${now}%</b></div>`});$("#progressTopics").innerHTML=h}
+function renderHelp(filter=""){let f=filter.toLowerCase();$("#helpItems").innerHTML=Object.keys(topics).filter(t=>(t+" "+topics[t].explain+" "+topics[t].rule).toLowerCase().includes(f)).map(t=>`<div class="box"><b>${topics[t].icon} ${t}</b><p class="small">${topics[t].explain}</p><p class="small"><b>🧠 ${topics[t].rule}</b></p></div>`).join("")}
+document.addEventListener("click",e=>{let g=e.target.closest("[data-go]");if(g)show(g.dataset.go);let p=e.target.closest("[data-page]");if(p){if(p.dataset.page==="home")renderHome();if(p.dataset.page==="progressPage")renderProgress();if(p.dataset.page==="helpPage")renderHelp();show(p.dataset.page)}})
+$("#saveName").onclick=()=>{let n=$("#firstName").value.trim();if(n.length<2)return alert("Bitte gib deinen Vornamen ein.");state.name=n;save();renderAvatars();show("avatar")}
+$("#saveAvatar").onclick=()=>{if(!state.avatar)return alert("Bitte wähle einen Charakter.");save();show("checkIntro")}
+$("#startCheck").onclick=()=>{qi=0;checkScore={};renderCheck();show("check")}
+$("#goHome").onclick=()=>{updateStreak();renderHome();show("home")}
+$("#recommendedBtn").onclick=()=>openLesson(state.recommended||"Grundrechnen")
+$("#beginTraining").onclick=startTraining;$("#skipExplain").onclick=startTraining
+$("#trainNext").onclick=()=>{ti++;ti>=5?finishSession():renderTraining()}
+$("#again").onclick=()=>openLesson(currentTopic)
+$("#helpSearch").oninput=e=>renderHelp(e.target.value)
+$("#calcToggle").onclick=()=>$("#calculator").classList.toggle("hidden")
+let calc="";["7","8","9","÷","4","5","6","×","1","2","3","−","0",",","C","+"].forEach(k=>{let b=document.createElement("button");b.textContent=k;b.onclick=()=>{if(k==="C")calc="";else calc+=k;$("#calcDisplay").textContent=calc||"0"};$("#calcKeys").appendChild(b)})
+$("#reset").onclick=()=>{if(confirm("Wirklich den gesamten MatheMarkt Fortschritt löschen?")){localStorage.removeItem("mmState");location.reload()}}
+$("#shareProgress").onclick=async()=>{let text=`MatheMarkt Fortschritt von ${state.name}\n`+Object.keys(topics).map(t=>`${t}: ${state.scores[t]||0}%`).join("\n")+`\nXP: ${state.xp} · Level: ${level()}`;if(navigator.share){try{await navigator.share({title:"MatheMarkt Fortschritt",text})}catch(e){}}else alert(text)}
+if(state.name&&state.checkDone){updateStreak();renderHome();show("home")}else if(state.name){renderAvatars();show(state.avatar?"checkIntro":"avatar")}
+</script>
+</body></html>
