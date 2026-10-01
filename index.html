@@ -92,7 +92,7 @@ input{width:100%;min-height:50px;border:1px solid var(--line);border-radius:15px
 <div class="box"><b>🔥 <span id="streak">1</span> Tage Streak</b><br><span class="small muted"><span id="xp">0</span> XP · <span id="level">Markt Starter</span></span></div>
 <button class="btn primary" id="recommendedBtn">🎯 Empfohlenes 3 Minuten Training</button><div class="space"></div>
 <div id="topicButtons"></div>
-<div class="home-version">MatheMarkt · Version 0.3.3</div>
+<div class="home-version">MatheMarkt · Version 0.4.0</div>
 </div></section>
 
 <section class="screen" id="lesson"><div class="card"><span class="pill" id="lessonTopic"></span><h2 id="lessonTitle" style="margin-top:10px"></h2><p id="lessonExplain"></p>
@@ -112,7 +112,7 @@ input{width:100%;min-height:50px;border:1px solid var(--line);border-radius:15px
 <section class="screen" id="helpPage"><div class="card"><h2>Mathe Hilfe 📚</h2><input id="helpSearch" placeholder="z. B. Dreisatz oder Rabatt"><div id="helpItems"></div></div></section>
 
 <section class="screen" id="settings"><div class="card"><h2>Mehr ⚙️</h2><div class="box"><b>🎓 Prüfungsmodus</b><p class="small muted">Wird pro Thema ab 70 % Sicherheit freigeschaltet. Ohne Tipps und ohne Zeitdruck.</p></div>
-<button class="btn secondary" id="shareProgress">📤 Fortschritt teilen</button><div class="space"></div><button class="btn secondary" id="reset">🔄 Fortschritt zurücksetzen</button><div class="version-mini">MatheMarkt · Version 0.3.3</div></div></section>
+<button class="btn secondary" id="shareProgress">📤 Fortschritt teilen</button><div class="space"></div><button class="btn secondary" id="reset">🔄 Fortschritt zurücksetzen</button><div class="version-mini">MatheMarkt · Version 0.4.0</div></div></section>
 </main>
 
 <nav class="global-nav" id="globalNav" aria-label="Hauptnavigation">
@@ -188,6 +188,79 @@ const trainingQs={
 "Dreisatz":[["4 Kisten enthalten 32 Flaschen. Wie viele in 7 Kisten?",["48","54","56","64"],2,"32 ÷ 4 = 8; 8 × 7 = 56"],["5 kg kosten 15 €. Was kosten 2 kg?",["5 €","6 €","7,50 €","10 €"],1,"15 ÷ 5 = 3; 3 × 2 = 6"]],
 "Kalkulation":[["Ein Artikel kostet 80 €. 25 % Rabatt. Neuer Preis?",["20 €","55 €","60 €","65 €"],2,"25 % von 80 = 20; 80 − 20 = 60"],["Preis 50 €, danach 10 % günstiger. Neuer Preis?",["5 €","40 €","45 €","49 €"],2,"10 % von 50 = 5; 50 − 5 = 45"]]
 };
+
+/* MatheMarkt 0.4: großer, adaptiver Aufgabenpool */
+function mmRnd(min,max){return Math.floor(Math.random()*(max-min+1))+min}
+function mmPick(a){return a[Math.floor(Math.random()*a.length)]}
+function mmShuffle(a){for(let i=a.length-1;i>0;i--){let j=mmRnd(0,i);[a[i],a[j]]=[a[j],a[i]]}return a}
+function mmMoney(n){return n.toFixed(2).replace(".",",")+" €"}
+function mmTask(q,correct,wrong,explain,diff){
+  let vals=[String(correct),...wrong.map(String)];
+  vals=[...new Set(vals)];
+  while(vals.length<4) vals.push(String(Number(correct)+vals.length+1));
+  vals=mmShuffle(vals.slice(0,4));
+  return [q,vals,vals.indexOf(String(correct)),explain,diff];
+}
+function mmMoneyTask(q,correct,wrong,explain,diff){
+  let c=mmMoney(correct),vals=[c,...wrong.map(mmMoney)];
+  vals=[...new Set(vals)];
+  while(vals.length<4) vals.push(mmMoney(correct+vals.length));
+  vals=mmShuffle(vals.slice(0,4));
+  return [q,vals,vals.indexOf(c),explain,diff];
+}
+function mmGenerate(topic,d){
+  if(topic==="Grundrechnen"){
+    if(d==="easy"){let a=mmRnd(25,80),b=mmRnd(5,a-8),c=a-b;return mmTask(`${a} Artikel, ${b} werden verkauft. Wie viele bleiben?`,c,[c-2,c+2,c+5],`${a} − ${b} = ${c}`,d)}
+    if(d==="medium"){let a=mmRnd(6,15),b=mmRnd(12,28),c=a*b;return mmTask(`${a} Aufsteller enthalten je ${b} Artikel. Wie viele insgesamt?`,c,[c-a,c+b,c+12],`${a} × ${b} = ${c}`,d)}
+    let a=mmRnd(320,650),b=mmRnd(70,160),x=mmRnd(30,90),c=a-b-x;return mmTask(`Bestand ${a}. ${b} werden eingeräumt und ${x} verkauft. Rest?`,c,[c-10,c+10,c+20],`${a} − ${b} − ${x} = ${c}`,d)
+  }
+  if(topic==="Kasse & Geld"){
+    if(d==="easy"){let p=mmRnd(6,18)+mmPick([.2,.4,.5,.8]),pay=mmPick([20,30,50]);while(pay<=p)pay+=10;let c=+(pay-p).toFixed(2);return mmMoneyTask(`Einkauf ${mmMoney(p)}, gegeben ${mmMoney(pay)}. Wechselgeld?`,c,[c-1,c+1,c+2],`${mmMoney(pay)} − ${mmMoney(p)} = ${mmMoney(c)}`,d)}
+    if(d==="medium"){let a=mmRnd(3,14)+.5,b=mmRnd(2,12)+.2,c=+(a+b).toFixed(2);return mmMoneyTask(`Artikel kosten ${mmMoney(a)} und ${mmMoney(b)}. Summe?`,c,[c-1,c+1,c+2],`${mmMoney(a)} + ${mmMoney(b)} = ${mmMoney(c)}`,d)}
+    let a=mmRnd(8,18)+.95,b=mmRnd(5,15)+.49,x=mmRnd(2,10)+.56,total=+(a+b+x).toFixed(2),pay=50;while(pay<=total)pay+=20;let c=+(pay-total).toFixed(2);return mmMoneyTask(`Drei Artikel kosten ${mmMoney(a)}, ${mmMoney(b)} und ${mmMoney(x)}. Bezahlt mit ${mmMoney(pay)}. Wechselgeld?`,c,[c-1,c+1,c+2],`Summe ${mmMoney(total)}. ${mmMoney(pay)} − ${mmMoney(total)} = ${mmMoney(c)}`,d)
+  }
+  if(topic==="Mengen & Waren"){
+    if(d==="easy"){let a=mmRnd(4,10),b=mmRnd(4,12),c=a*b;return mmTask(`${a} Kisten enthalten je ${b} Flaschen. Gesamt?`,c,[c-a,c+b,c+8],`${a} × ${b} = ${c}`,d)}
+    if(d==="medium"){let a=mmRnd(8,16),b=mmRnd(6,18),s=mmRnd(10,35),c=a*b-s;return mmTask(`${a} Kartons à ${b} Packungen. ${s} werden verkauft. Rest?`,c,[c-10,c+10,c+20],`${a} × ${b} = ${a*b}. ${a*b} − ${s} = ${c}`,d)}
+    let a=mmRnd(18,30),b=mmRnd(12,24),s=mmRnd(80,170),c=a*b-s;return mmTask(`${a} Kartons à ${b} Artikel. ${s} werden verkauft. Rest?`,c,[c-12,c+12,c+24],`${a} × ${b} = ${a*b}. ${a*b} − ${s} = ${c}`,d)
+  }
+  if(topic==="Maße & Gewichte"){
+    if(d==="easy"){let kg=mmRnd(2,8),c=kg*1000;return mmTask(`${kg} kg entsprechen wie vielen Gramm?`,c,[kg*100,kg*500,c+1000],`${kg} × 1.000 = ${c} g`,d)}
+    if(d==="medium"){let n=mmRnd(4,10),g=mmPick([200,250,400,500,750]),total=n*g,c=(total/1000).toLocaleString("de-DE")+" kg";return mmTask(`${n} Packungen à ${g} g. Gesamtgewicht?`,c,[((total+500)/1000).toLocaleString("de-DE")+" kg",((total+1000)/1000).toLocaleString("de-DE")+" kg",((Math.max(250,total-250))/1000).toLocaleString("de-DE")+" kg"],`${n} × ${g} g = ${total} g = ${c}`,d)}
+    let l=mmPick([4.5,6,7.5,9]),ml=mmPick([250,500,750]);while((l*1000)%ml)ml=mmPick([250,500,750]);let c=l*1000/ml;return mmTask(`${String(l).replace(".",",")} l werden in ${ml} ml Einheiten abgefüllt. Wie viele?`,c,[c-2,c+2,c+4],`${l*1000} ÷ ${ml} = ${c}`,d)
+  }
+  if(topic==="Prozentrechnung"){
+    if(d==="easy"){let b=mmPick([40,50,60,80,100,120]),p=mmPick([10,20,25,50]),c=b*p/100;return mmMoneyTask(`${p} % von ${mmMoney(b)} sind?`,c,[c-5,c+5,c+10],`${b} × ${p} ÷ 100 = ${mmMoney(c)}`,d)}
+    if(d==="medium"){let b=mmPick([60,80,100,120,150,200]),p=mmPick([10,15,20,25,30]),r=b*p/100,c=b-r;return mmMoneyTask(`${mmMoney(b)} mit ${p} % Rabatt. Neuer Preis?`,c,[c-5,c+5,c+10],`${p} % = ${mmMoney(r)}. ${mmMoney(b)} − ${mmMoney(r)} = ${mmMoney(c)}`,d)}
+    let b=mmPick([80,100,120,160,200]),p1=mmPick([10,20,25]),p2=mmPick([5,10]),z=b*(1-p1/100),c=+(z*(1-p2/100)).toFixed(2);return mmMoneyTask(`${mmMoney(b)}, erst ${p1} % Rabatt, danach weitere ${p2} %. Neuer Preis?`,c,[c-5,c+5,c+10],`Nach ${p1} %: ${mmMoney(z)}. Danach ${p2} %: ${mmMoney(c)}`,d)
+  }
+  if(topic==="Dreisatz"){
+    if(d==="easy"){let k=mmPick([2,3,4,5,6]),per=mmRnd(3,10),w=mmRnd(7,12),total=k*per,c=w*per;return mmTask(`${k} Kisten enthalten ${total} Artikel. Wie viele sind in ${w} Kisten?`,c,[c-per,c+per,c+10],`${total} ÷ ${k} = ${per}. ${per} × ${w} = ${c}`,d)}
+    if(d==="medium"){let kg=mmPick([2,4,5]),per=mmPick([2.4,2.8,3.2,3.5]),price=kg*per,w=mmPick([1.5,2.5,3]),c=+(w*per).toFixed(2);return mmMoneyTask(`${kg} kg kosten ${mmMoney(price)}. Was kosten ${String(w).replace(".",",")} kg?`,c,[c-1,c+1,c+2],`${mmMoney(price)} ÷ ${kg} = ${mmMoney(per)} je kg. × ${String(w).replace(".",",")} = ${mmMoney(c)}`,d)}
+    let kg=mmPick([2.4,3.2,4.8]),per=mmPick([2.8,3.2,3.6]),price=+(kg*per).toFixed(2),w=mmPick([.75,1.25,1.75]),c=+(w*per).toFixed(2);return mmMoneyTask(`${String(kg).replace(".",",")} kg kosten ${mmMoney(price)}. Was kosten ${String(w).replace(".",",")} kg?`,c,[c-.8,c+.8,c+1.6],`${mmMoney(price)} ÷ ${String(kg).replace(".",",")} = ${mmMoney(per)} je kg. × ${String(w).replace(".",",")} = ${mmMoney(c)}`,d)
+  }
+  if(topic==="Kalkulation"){
+    if(d==="easy"){let b=mmPick([40,50,60,80,100]),p=mmPick([10,20,25]),r=b*p/100,c=b-r;return mmMoneyTask(`${mmMoney(b)} mit ${p} % Rabatt. Neuer Preis?`,c,[c-5,c+5,c+10],`${p} % = ${mmMoney(r)}. Neuer Preis ${mmMoney(c)}`,d)}
+    if(d==="medium"){let ek=mmPick([32,40,48,60,72]),p=mmPick([20,25,30]),z=ek*p/100,c=ek+z;return mmMoneyTask(`Einkaufspreis ${mmMoney(ek)}, Aufschlag ${p} %. Verkaufspreis?`,c,[c-5,c+5,c+10],`${p} % von ${mmMoney(ek)} = ${mmMoney(z)}. Verkaufspreis ${mmMoney(c)}`,d)}
+    let ek=mmPick([48,60,72,80]),up=mmPick([20,25,30]),rab=mmPick([5,10,15]),vk=ek*(1+up/100),c=+(vk*(1-rab/100)).toFixed(2);return mmMoneyTask(`Einkaufspreis ${mmMoney(ek)}, ${up} % Aufschlag, danach ${rab} % Aktionsrabatt. Endpreis?`,c,[c-5,c+5,c+10],`Nach Aufschlag ${mmMoney(vk)}, danach Rabatt = ${mmMoney(c)}`,d)
+  }
+}
+function mmDifficultyMix(topic){
+  const s=state.scores[topic]||0;
+  if(s<40)return ["easy","easy","easy","medium","medium"];
+  if(s<70)return ["easy","medium","medium","medium","hard"];
+  return ["medium","medium","hard","hard","hard"];
+}
+function mmBuildSession(topic){
+  let recent=state.recentQuestions||[],pool=[];
+  for(const d of mmDifficultyMix(topic)){
+    let q,tries=0;
+    do{q=mmGenerate(topic,d);tries++}while(recent.includes(q[0])&&tries<50);
+    pool.push(q);recent.push(q[0]);
+  }
+  state.recentQuestions=recent.slice(-35);save();return pool;
+}
+
 const avatars=[["🧾","Kassen Pro"],["🥦","O+G Hero"],["📦","Lager Boss"],["🏷️","Preis Checker"]];
 let state=JSON.parse(localStorage.getItem("mmState")||"null")||{name:"",avatar:"",emoji:"",xp:0,streak:1,lastDay:"",checkDone:false,scores:{},startScores:{},history:{},level:"Markt Starter"};
 let qi=0,checkScore={},currentTopic="",ti=0,attempt=0,session={right:0,tips:0,xp:0};
@@ -243,10 +316,11 @@ function finishAdaptiveCheck(){
 function renderResult(){let vals=Object.entries(state.scores);let weak=vals.sort((a,b)=>a[1]-b[1])[0]?.[0]||"Grundrechnen";state.recommended=weak;save();$("#resultTitle").textContent=`Dein Startpunkt, ${state.name} 🔥`;$("#resultTopics").innerHTML=Object.keys(topics).map(t=>`<div class="topic"><span>${topics[t].icon} ${t}</span><b>${state.scores[t]||0}%</b></div>`).join("");$("#recommendation").textContent=`Wir starten mit ${weak}. Du kannst aber jederzeit ein anderes Thema wählen.`}
 function renderHome(){state.level=level();$("#homeName").textContent=state.name;$("#homeAvatar").textContent=state.emoji||"🛒";$("#streak").textContent=state.streak;$("#xp").textContent=state.xp;$("#level").textContent=state.level;$("#recommendedBtn").textContent=`🎯 ${state.recommended||"Grundrechnen"} trainieren`;$("#topicButtons").innerHTML=Object.keys(topics).map(t=>`<button class="btn secondary topicBtn" data-topic="${t}" style="margin-bottom:8px;text-align:left">${topics[t].icon} ${t} · ${state.scores[t]||0}%</button>`).join("");$$(".topicBtn").forEach(b=>b.onclick=()=>openLesson(b.dataset.topic))}
 function openLesson(t){currentTopic=t;let x=topics[t];$("#lessonTopic").textContent=x.icon+" "+t;$("#lessonTitle").textContent=x.title;$("#lessonExplain").textContent=x.explain;$("#lessonRule").textContent=x.rule;$("#lessonExample").textContent=x.example;show("lesson")}
-function startTraining(){ti=0;attempt=0;session={right:0,tips:0,xp:0};renderTraining();show("training")}
-function renderTraining(){let qs=trainingQs[currentTopic],q=qs[ti%qs.length];$("#trainTopic").textContent=topics[currentTopic].icon+" "+currentTopic;$("#trainCount").textContent=`${ti+1} von 5`;$("#trainBar").style.width=((ti+1)/5*100)+"%";$("#trainText").textContent=q[0];$("#trainAnswers").innerHTML=q[1].map((a,i)=>`<button class="answer" data-i="${i}">${a}</button>`).join("");$("#trainFeedback").classList.add("hidden");$("#trainNext").classList.add("hidden");attempt=0;let calc=["Prozentrechnung","Dreisatz","Kalkulation"].includes(currentTopic);$("#calcToggle").classList.toggle("hidden",!calc);$("#calculator").classList.add("hidden");$$("#trainAnswers .answer").forEach(b=>b.onclick=()=>answerTrain(+b.dataset.i))}
+let sessionPool=[];
+function startTraining(){ti=0;attempt=0;session={right:0,tips:0,xp:0};sessionPool=mmBuildSession(currentTopic);renderTraining();show("training")}
+function renderTraining(){let q=sessionPool[ti];$("#trainTopic").textContent=topics[currentTopic].icon+" "+currentTopic;$("#trainCount").textContent=`${ti+1} von 5`;$("#trainBar").style.width=((ti+1)/5*100)+"%";$("#trainText").textContent=q[0];$("#trainAnswers").innerHTML=q[1].map((a,i)=>`<button class="answer" data-i="${i}">${a}</button>`).join("");$("#trainFeedback").classList.add("hidden");$("#trainNext").classList.add("hidden");attempt=0;$("#calcToggle").classList.add("hidden");$("#calculator").classList.add("hidden");$$("#trainAnswers .answer").forEach(b=>b.onclick=()=>answerTrain(+b.dataset.i))}
 function answerTrain(i){
-  const q=trainingQs[currentTopic][ti%trainingQs[currentTopic].length];
+  const q=sessionPool[ti];
   const fb=$("#trainFeedback");
   const explanation=(typeof q[3]==="string" && q[3].trim())
     ? q[3]
@@ -295,7 +369,7 @@ if(state.name&&state.checkDone){updateStreak();renderHome();show("home")}else if
 
 
 <script>
-const MM_VERSION="0.3.3";
+const MM_VERSION="0.4.0";
 const onboardingScreens=["welcome","name","avatar","checkIntro"];
 const activeWorkScreens=["check","lesson","training"];
 let pendingGlobalPage=null;
@@ -366,7 +440,7 @@ updateGlobalUI();
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./service-worker.js?v=033', {updateViaCache:'none'}).then(r=>r.update()).catch(() => {});
+    navigator.serviceWorker.register('./service-worker.js?v=040', {updateViaCache:'none'}).then(r=>r.update()).catch(() => {});
   });
 }
 </script>
